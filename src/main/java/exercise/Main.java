@@ -8,9 +8,17 @@ package exercise;
 import java.io.IOException;
 import java.net.URI;
 
+import javax.inject.Singleton;
+
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+
+import exercise.inject.Greeting;
+import exercise.inject.GreetingFactory;
+import exercise.inject.SingletonGreeting;
+import exercise.inject.SingletonGreetingFactory;
 
 /**
  * copied and customized from:
@@ -29,8 +37,15 @@ public class Main {
     public static HttpServer startServer() {
         // create a resource config that scans for JAX-RS resources and providers
         // in net.glamenvseptzen.jersey.ex1 package
-        final ResourceConfig rc = new ResourceConfig()
-                .packages("exercise");
+        final ResourceConfig rc = new ResourceConfig().packages("exercise");
+        rc.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bindFactory(GreetingFactory.class).to(Greeting.class);
+                bindFactory(SingletonGreetingFactory.class).to(
+                        SingletonGreeting.class).in(Singleton.class);
+            }
+        });
 
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
